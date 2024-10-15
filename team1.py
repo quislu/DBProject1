@@ -10,6 +10,10 @@ query = "select advisee.id, advisee.name, instructor.name from (select * from ad
 
 try:
     cur.execute(query)
+    print("\nAdvisee id | Advisee name | Advisor name")
+    print("========================================")
+    for advisee in cur:
+        print(advisee[0], '     |', advisee[1], ' '*(11-len(advisee[1])), '|', advisee[2])
     conn.commit()
 except psycopg2.Error as e:
     print("Other Error")

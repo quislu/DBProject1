@@ -6,7 +6,13 @@ import psycopg2
 conn = psycopg2.connect(dbname="team1")
 cur = conn.cursor()
 
-query = "select advisee.id, advisee.name, instructor.name from (select * from advisor, student where id = s_id) as advisee, instructor where instructor.id = i_id;"
+query = '''
+        select advisee.id, advisee.name, instructor.name 
+        from (
+            select * 
+            from advisor, student 
+            where id = s_id) as advisee, instructor 
+        where instructor.id = i_id;'''
 
 try:
     cur.execute(query)

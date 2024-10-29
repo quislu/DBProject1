@@ -4,28 +4,30 @@
 import psycopg2
 
 def advisor_list():
-        query = '''
-                select advisee.id, advisee.name, instructor.name 
-                from (
-                    select * 
-                    from advisor, student 
-                    where id = s_id) as advisee, instructor 
-                where instructor.id = i_id;'''
-        
-        try:
-            cur.execute(query)
-            print("\nAdvisee id | Advisee name | Advisor name")
-            print("===========|==============|=============")
-            for advisee in cur:
-                print(advisee[0], '     |', advisee[1], ' '*(11-len(advisee[1])), '|', advisee[2])
-            conn.commit()
-        except psycopg2.Error as e:
-            print("Other Error")
-            print(e)
-            conn.rollback()
+    '''Submits query and prints for table of advisor and advisee names'''
+    query = """
+        select advisee.id, advisee.name, instructor.name 
+        from (
+            select * 
+            from advisor, student 
+            where id = s_id) as advisee, instructor 
+        where instructor.id = i_id;"""
+
+    try:
+        cur.execute(query)
+        print("\nAdvisee id | Advisee name | Advisor name")
+        print("===========|==============|=============")
+        for advisee in cur:
+            print(advisee[0], '     |', advisee[1], ' '*(11-len(advisee[1])), '|', advisee[2])
+        conn.commit()
+    except psycopg2.Error as e:
+        print("Other Error")
+        print(e)
+        conn.rollback()
 
 
 def insert_instructor_prompts():
+    '''Accepts user input and assigns to variables that will be passed to insert_instructor()'''
     fac = input("Enter the name of a new faculty member: ")
     fid = input("Enter a new ID for the faculty member: ")
     dep = input("Enter the faculty member's department: ")
@@ -33,6 +35,7 @@ def insert_instructor_prompts():
     return fac,fid,dep,sal
 
 def insert_instructor():
+    '''Takes user inputs and attempts to insert a new instructor with those values'''
         fac,fid,dep,sal = insert_instructor_prompts()
         query = "insert into instructor values (%s, %s, %s, %s);"
         
@@ -68,6 +71,7 @@ def generate_transcript():
 def course_list():
 
 def register_prompts():
+    '''Accepts user input and assigns to variables that will be passed to insert_instructor()'''
     student_id = input("Enter student ID: ")
     course_id = input("Enter course ID: ")
     sec_id = input("Enter section ID: ")
@@ -76,10 +80,13 @@ def register_prompts():
     return student_id, course_id, sec_id, semester, year
 
 def register_prerequisites(cur, student_id, course_id):
+    '''Fetches prereq table from database as array'''
     cur.execute("""select prereq_id from prereq 
                     where course_id = %s;""", (course_id,))
     prerequisites = cur.fetchall()
 
+    '''Iterates over the array, testing if the student has taken each prerequisite.  If not, returns false to
+    fail the conditional in register() which will print an error message.'''
     for prereq in prerequisites:
         cur.execute("""select count(*) from takes 
                         where id = %s and 
@@ -91,6 +98,7 @@ def register_prerequisites(cur, student_id, course_id):
     return True
 
 def register_schedule(cur, student_id, course_id, sec_id, semester, year):
+    '''Fetches student's '''
     cur.execute("""select time_slot_id from section 
                     where course_id = %s and 
                     sec_id = %s and 

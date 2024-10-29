@@ -1,4 +1,4 @@
-import pyscopg2
+import psycopg2
 # Register student for a course
 
 def prompts():
@@ -6,18 +6,18 @@ def prompts():
     course_id = input("Enter course ID: ")
     sec_id = input("Enter section ID: ")
     semester = input("Enter semester: ")
-    year = int(input("Enter year: "))
-    return semester, year, student_id, course_id, sec_id
+    year = input("Enter year: ")
+    return student_id, course_id, sec_id, semester, year
 
 def prerequisites(cur, student_id, course_id):
     cur.execute("""select prereq_id from prereq 
-                    where course_id = %s""", (course_id))
+                    where course_id = %s;""", (course_id,))
     prerequisites = cur.fetchall()
 
     for prereq in prerequisites:
         cur.execute("""select count(*) from takes 
                         where id = %s and 
-                        course_id =%s and 
+                        course_id = %s and 
                         grade is not null""", (student_id, prereq[0]))
         if cur.fetchone()[0] == 0:
             print("Student has not completed all prerequisites")
@@ -67,7 +67,7 @@ def avalability(cur, course_id, sec_id, semester, year):
                         semester = %s and 
                         year = %s""", (course_id, sec_id, semester, year))
         num_students = cur.fetchone()[0]
-        if enrollment >= capacity:
+        if num_students >= capacity:
             print("This section is already full.")
             return False
 
@@ -92,19 +92,22 @@ def register(cur, student_id, course_id, sec_id, semester, year):
         print("Registration error")
 
 def main():
-    conn = psycopg2.connect(dbname="dbinstrux")
+    conn = psycopg2.connect(dbname="team1")
     cur = conn.cursor()
 
     student_id,course_id,sec_id,semester,year = prompts()
 
-try:
-    register(cur, student_id, course_id, sec_id, semester, year)
-    conn.commit()
+    try:
+        register(cur, student_id, course_id, sec_id, semester, year)
+        conn.commit()
 
-except pycopg2.Error as e:
-    print("Error")
-    print(e)
-    conn.rollback()
+    except psycopg2.Error as e:
+        print("Error")
+        print(e)
+        conn.rollback()
 
-finally:
-    conn.close()
+    finally:
+        conn.close()
+
+
+main()

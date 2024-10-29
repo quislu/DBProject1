@@ -195,7 +195,7 @@ def main():
                 case "C":
                         course_list()
                 case "R":
-                        register_handler()
+                        register_handler() #TODO: incorporate psycopg2 errors
                 case "Q":
                         break
                 case _:

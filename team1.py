@@ -205,27 +205,19 @@ def main():
         user_in = user_in.upper()
     
         if user_in == "A":
-            print("advisor_list()")
+            advisor_list()
         elif user_in == "I":
-            print("insert_instructor()")
+            insert_instructor()
         elif user_in == "T":
             print("generate_transcript()")
         elif user_in == "C":
             print("course_list()")
         elif user_in == "R":
-            print("register_handler()") #TODO: incorporate psycopg2 errors
+            register_handler() #TODO: incorporate psycopg2 errors
         elif user_in == "Q":
             break
         else:
             print("Invalid input, please try again\n")
-    
-        user_in = input("Press any key to continue, or Q to quit.")
-        user_in = user_in.upper()
         
-        if user_in == "Q":
-            break
-        else:
-            continue
-    
         finally:
             conn.close()

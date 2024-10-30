@@ -200,7 +200,8 @@ def main():
         print("C: Generate a course list for a term")
         print("R: Register a student for a course")
         print("Q: Close the connection and exit the program\n")
-        
+
+        user_in = ""
         user_in = input("Enter your selection: ")
         user_in = user_in.upper()
     

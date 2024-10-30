@@ -181,33 +181,51 @@ def main():
 
     conn = psycopg2.connect(dbname="team1")
     cur = conn.cursor()
-        
-    while(1):
-        print("Welcome to the Team1 University Database System(c)!\n\n")
-        print("A: Generate list of advisees and advisors\n")
-        print("I: Add an instructor to the database\n")
-        print("T: Generate a student's transcript\n")
-        print("C: Generate a course list for a term\n")
-        print("R: Register a student for a course\n")
-        print("Q: Close the connection and exit the program\n\n")
-        
-        input = input("Enter your selection: \n")
 
-        match input:
-                case "A":
-                        advisor_list()
-                case "I":
-                        insert_instructor()
-                case "T":
-                        generate_transcript()
-                case "C":
-                        course_list()
-                case "R":
-                        register_handler() #TODO: incorporate psycopg2 errors
-                case "Q":
-                        break
-                case _:
-                        print("Invalid input, please try again\n")
-                        
-    finally:
-        conn.close()
+    print()
+    print("#######                        #      #     #                                                       ######                                                  ")
+    print("   #    ######   ##   #    #  ##      #     # #    # # #    # ###### #####   ####  # ##### #   #    #     #   ##   #####   ##   #####    ##    ####  ###### ")
+    print("   #    #       #  #  ##  ## # #      #     # ##   # # #    # #      #    # #      #   #    # #     #     #  #  #    #    #  #  #    #  #  #  #      #      ")
+    print("   #    #####  #    # # ## #   #      #     # # #  # # #    # #####  #    #  ####  #   #     #      #     # #    #   #   #    # #####  #    #  ####  #####  ")
+    print("   #    #      ###### #    #   #      #     # #  # # # #    # #      #####       # #   #     #      #     # ######   #   ###### #    # ######      # #      ")
+    print("   #    #      #    # #    #   #      #     # #   ## #  #  #  #      #   #  #    # #   #     #      #     # #    #   #   #    # #    # #    # #    # #      ")
+    print("   #    ###### #    # #    # #####     #####  #    # #   ##   ###### #    #  ####  #   #     #      ######  #    #   #   #    # #####  #    #  ####  ###### \n")
+    
+    print("Welcome to the Team1 University Database System! (c) 2024, all rights reserved.\n")
+    
+    while(1):
+        print("A: Generate list of advisees and advisors")
+        print("I: Add an instructor to the database")
+        print("T: Generate a student's transcript")
+        print("C: Generate a course list for a term")
+        print("R: Register a student for a course")
+        print("Q: Close the connection and exit the program\n")
+        
+        user_in = input("Enter your selection: ")
+        user_in = user_in.upper()
+    
+        if user_in == "A":
+            print("advisor_list()")
+        elif user_in == "I":
+            print("insert_instructor()")
+        elif user_in == "T":
+            print("generate_transcript()")
+        elif user_in == "C":
+            print("course_list()")
+        elif user_in == "R":
+            print("register_handler()") #TODO: incorporate psycopg2 errors
+        elif user_in == "Q":
+            break
+        else:
+            print("Invalid input, please try again\n")
+    
+        user_in = input("Press any key to continue, or Q to quit.")
+        user_in = user_in.upper()
+        
+        if user_in == "Q":
+            break
+        else:
+            continue
+    
+        finally:
+            conn.close()

@@ -15,7 +15,7 @@ def prompt():
 
 #query = "insert into instructor values (%s, %s, %s, %s);"
 
-def transcript(id):
+def transcript(cur, id):
     setup_query = '''
     DROP TABLE IF EXISTS GPA
     CREATE TABLE GPA (

@@ -144,3 +144,4 @@ def main():
     finally:
         conn.close()
 
+main()

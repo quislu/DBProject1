@@ -97,9 +97,9 @@ def transcript(cur, id):
     LEFT JOIN student_gpa ON student_takes_course.ID = student_gpa.ID
     LEFT JOIN student_gpa_semester 
         ON student_takes_course.ID = student_gpa_semester.ID 
-        AND semester_year = student_gpa_semester.semester_year;
+        AND semester_year = student_gpa_semester.semester_year
     WHERE student_takes_course.ID = %s
-    ORDER BY student_takes_course.year
+    ORDER BY student_takes_course.year;
     '''
     try:
         cur.execute(transcript_query, (id,))

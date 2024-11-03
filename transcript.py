@@ -119,7 +119,7 @@ def transcript(cur, id):
                     if sem_gpa != "N/A":
                         print(f"\n{current_semester} Semester GPA: {sem_gpa:.2f}")
                     else: 
-                        print(f"\n{current_semester} Semester GPA: N/A")
+                        print(f"\n{current_semester} Semester GPA: N/A ")
                     ("Course ID | Section | Course Name | Credits | Grade")
                     print("-" * 60)
 

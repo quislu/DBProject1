@@ -17,7 +17,10 @@ def prompt():
 
 def transcript(cur, id):
     setup_query = '''
-    DROP TABLE IF EXISTS GPA
+    DROP VIEW IF EXISTS student_gpa_semester;
+    DROP VIEW IF EXISTS student_gpa;
+    DROP VIEW IF EXISTS credits_taken;
+    DROP TABLE IF EXISTS GPA CASCADE;
     CREATE TABLE GPA (
         letter VARCHAR(2) PRIMARY KEY,
         points NUMERIC(2)
@@ -37,31 +40,28 @@ def transcript(cur, id):
     INSERT INTO GPA VALUES ('D-', 0.7);
     INSERT INTO GPA VALUES ('F', 0);
     
-    DROP VIEW IF EXISTS credits_taken;
-    DROP VIEW IF EXISTS student_gpa;
-    DROP VIEW IF EXISTS student_gpa_semester;
 
     CREATE VIEW credits_taken AS
-        SELECT student.ID, SUM(credits) AS taken_creds
+        SELECT student.ID as student_id, SUM(credits) AS taken_creds
         FROM student 
         NATURAL JOIN takes 
         NATURAL JOIN course
         GROUP BY student.ID;
 
     CREATE VIEW student_gpa AS
-        SELECT takes.ID, SUM(GPA.points * 1.0 * course.credits / credits_taken.taken_creds) AS cumulative_gpa
+        SELECT takes.ID as student_id, SUM(GPA.points * 1.0 * course.credits / credits_taken.taken_creds) AS cumulative_gpa
         FROM takes
-        LEFT JOIN credits_taken ON takes.ID = credits_taken.ID
+        LEFT JOIN credits_taken ON takes.ID = credits_taken.student_id
         LEFT JOIN GPA ON takes.grade = GPA.letter
         LEFT JOIN course ON takes.course_id = course.course_id
         GROUP BY takes.ID;
 
     CREATE VIEW student_gpa_semester AS
-        SELECT takes.ID, 
+        SELECT takes.ID as student_id, 
             takes.semester || takes.year AS semester_year,
             SUM(GPA.points * 1.0 * course.credits / credits_taken.taken_creds) AS semester_gpa
         FROM takes
-        LEFT JOIN credits_taken ON takes.ID = credits_taken.ID
+        LEFT JOIN credits_taken ON takes.ID = credits_taken.student_id
         LEFT JOIN GPA ON takes.grade = GPA.letter
         LEFT JOIN course ON takes.course_id = course.course_id
         GROUP BY takes.ID, semester_year;
@@ -70,18 +70,19 @@ def transcript(cur, id):
 
     transcript_query = '''
     WITH student_takes AS (
-        SELECT * 
+        SELECT student.ID AS student_id, student.name, student.dept_name, takes.*
         FROM student 
         LEFT JOIN takes ON student.ID = takes.ID
     ),
     student_takes_course AS (
-        SELECT * 
+        SELECT student_takes.student_id, student_takes.name, student_takes.dept_name, student_takes.semester, student_takes.year,
+        student_takes.course_id, student_takes.sec_id, course.title, course.credits, student_takes.grade, credits_taken.taken_creds
         FROM student_takes 
         LEFT JOIN course ON student_takes.course_id = course.course_id
-        NATURAL JOIN credits_taken
+        LEFT JOIN credits_taken ON student_takes.student_id = credits_taken.student_id
     )
     SELECT 
-        student_takes_course.ID, 
+        student_takes_course.student_id as ID, 
         student_takes_course.name, 
         student_takes_course.dept_name, 
         student_takes_course.semester || student_takes_course.year AS semester_year,
@@ -94,11 +95,11 @@ def transcript(cur, id):
         student_gpa.cumulative_gpa
     FROM 
         student_takes_course
-    LEFT JOIN student_gpa ON student_takes_course.ID = student_gpa.ID
+    LEFT JOIN student_gpa ON student_takes_course.student_id = student_gpa.student_id
     LEFT JOIN student_gpa_semester 
-        ON student_takes_course.ID = student_gpa_semester.ID 
-        AND semester_year = student_gpa_semester.semester_year
-    WHERE student_takes_course.ID = %s
+        ON student_takes_course.student_id = student_gpa_semester.student_id
+        AND student_takes_course.semester || student_takes_course.year = student_gpa_semester.semester_year
+    WHERE student_takes_course.student_id = %s
     ORDER BY student_takes_course.year;
     '''
     try:
@@ -107,20 +108,28 @@ def transcript(cur, id):
 
         if rows:
             # Print transcript
-            print(f"Transcript for {row[1]}: {id} ")
-            print(f"{row[2]}")
+            print(f"Transcript for {rows[0][1]}: {id} ")
+            print(f"{rows[0][2]}")
             current_semester = None
             for row in rows:
                 if row[3] != current_semester:
                     current_semester = row[3]
-                    print(f"\n{current_semester} Semester GPA: {row[9]:.2f}")
-                    print("Course ID | Section | Course Name                | Credits | Grade")
+                    sem_gpa = row[9] if row[9] is not None else "N/A"
+                    cumulative_gpa = row[10] if row[10] is not None else "N/A"
+                    if sem_gpa != "N/A":
+                        print(f"\n{current_semester} Semester GPA: {sem_gpa:.2f}")
+                    else: 
+                        print(f"\n{current_semester} Semester GPA: N/A")
+                    ("Course ID | Section | Course Name | Credits | Grade")
                     print("-" * 60)
 
                 print(f"{row[4]}-{row[5]} {row[6]} ({row[7]}) {row[8]}")
 
             # Display cumulative GPA at the end
-            print(f"\nCumulative GPA: {rows[0][10]:.2f}")
+            if cumulative_gpa != "N/A":
+                print(f"Cumulative GPA: {cumulative_gpa:.2f}")
+            else:
+                print(f"Cumulative GPA: N/A")
         else:
             print("No records found for that student ID.")
         
@@ -130,7 +139,7 @@ def transcript(cur, id):
 
 
 def main():
-    conn = psycopg2.connect(dbname="dbinstrux")
+    conn = psycopg2.connect(dbname="team1")
     cur = conn.cursor()
 
     s_id = prompt()

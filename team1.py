@@ -421,7 +421,12 @@ def main():
                 except Exception:
                     conn.rollback()
             elif user_in == "T":
-                generate_transcript(cur)
+                try:
+                    generate_transcript(cur)
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+
             elif user_in == "C":
                 generate_course_list(cur)
             elif user_in == "R":

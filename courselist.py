@@ -1,6 +1,6 @@
 import psycopg2
 
-def prompts():
+def course_list_prompts():
     semester = input("Enter semester: ")
     year = input("Enter year: ")
     return semester, year
@@ -63,7 +63,8 @@ def print_course_list(sections):
             print(timeslot)
         print("")
 
-def generate_list(cur, semester, year):
+def generate_list(cur):
+    semester, year = course_list_prompts()
     sections = get_sections(cur, semester, year)
     if len(sections) == 0:
         print("No sections being offered for given semester and year")
@@ -79,10 +80,8 @@ def main():
     conn = psycopg2.connect(dbname="team1")
     cur = conn.cursor()
 
-    semester,year = prompts()
-
     try:
-        generate_list(cur, semester, year)
+        generate_list(cur)
         conn.commit()
 
     except psycopg2.Error as e:

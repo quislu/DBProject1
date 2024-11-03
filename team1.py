@@ -3,6 +3,7 @@
 
 import psycopg2
 
+# Generates advisor list
 def advisor_list(cur):
     '''Submits query and prints for table of advisor and advisee names'''
     query = """
@@ -33,6 +34,7 @@ def insert_instructor_prompts():
     sal = input("Enter the faculty member's salary: ")
     return fac,fid,dep,sal
 
+# tries to insert a new instructor into the table
 def insert_instructor(cur):
     '''Takes user inputs and attempts to insert a new instructor with those values'''
     fac,fid,dep,sal = insert_instructor_prompts()
@@ -119,12 +121,36 @@ def get_enrollment(cur, course_id, sec_id, semester, year):
 
 # formats and prints the course list
 def print_course_list(sections, semester, year):
+    space = " "
     print(f"\nCourses offered in {semester} of {year}: \n")
+    print("Course-Section   Course Title                  Credits   Building   Room Number   Capacity   Enrollment")
     for line in sections:
-        course_line = f"{line[0]}-{line[1]} {line[2]} ({line[3]}) {line[4]} {line[5]} {line[7]} {line[8]}"
+        course_section = f"{line[0]}-{line[1]}"
+        course_section += (space * (17-len(course_section)))
+
+        title = line[2]
+        title += (space * (30-len(title)))
+
+        credits = f"({line[3]})"
+        credits += (space * (10-len(credits)))
+
+        building = line[4]
+        building += (space * (11-len(building)))
+
+        room = line[5]
+        room += (space * (14-len(room)))
+
+        capacity = line[7]
+        capacity += (space * (11-len(capacity)))
+
+        enroll = line[8]
+
+        course_line = f"{course_section}{title}{credits}{building}{room}{capacity}{enroll}"
+        print("-"*103)
         print(course_line)
+        print("\nMeeting times:")
         for time in line[6]:
-            timeslot = f"    {time[0]} {time[1]}-{time[2]}"
+            timeslot = f" {time[0]} {time[1]}-{time[2]}"
             print(timeslot)
         print("")
 

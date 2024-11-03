@@ -231,6 +231,12 @@ def generate_transcript(cur):
     WHERE student_takes_course.student_id = %s
     ORDER BY student_takes_course.year;
     '''
+
+    drop_query = '''
+    DROP VIEW IF EXISTS student_gpa_semester;
+    DROP VIEW IF EXISTS student_gpa;
+    DROP VIEW IF EXISTS credits_taken;
+    DROP TABLE IF EXISTS GPA CASCADE;'''
     try:
         cur.execute(transcript_query, (id,))
         rows = cur.fetchall()
@@ -261,6 +267,7 @@ def generate_transcript(cur):
                 print(f"Cumulative GPA: N/A")
         else:
             print("No records found for that student ID.")
+        cur.execute(drop_query)
         
     except psycopg2.error:
         print("Transcript generation error")

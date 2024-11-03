@@ -52,19 +52,28 @@ def get_enrollment(cur, course_id, sec_id, semester, year):
                     where course_id = %s and sec_id = %s and semester = %s and year = %s""", (course_id, sec_id, semester, year))
     return str(cur.fetchone()[0])
 
+
+# formats and prints the course list
+def print_course_list(sections):
+    for line in sections:
+        course_line = f"{line[0]}-{line[1]} {line[2]} ({line[3]}) {line[4]} {line[5]} {line[7]} {line[8]}"
+        print(course_line)
+        for time in line[6]:
+            timeslot = f"    {time[0]} {time[1]}-{time[2]}"
+            print(timeslot)
+        print("")
+
 def generate_list(cur, semester, year):
-    course_list = []
-    print('Generating course list')
-    cur.execute("""select * from section
-                   where semester = %s and year = %s
-                   order by course_id""",(semester, year))
     sections = get_sections(cur, semester, year)
-    for i in range(0,len(sections)):
-        sections[i][2], sections[i][3] = get_course_name(cur, sections[i][0])
-        sections[i][6] = get_time_slots(cur, sections[i][6])
-        sections[i].append(get_capacity(cur, sections[i][4], sections[i][5]))
-        sections[i].append(get_enrollment(cur, sections[i][0], sections[i][1], semester, year))
-        print(sections[i])
+    if len(sections) == 0:
+        print("No sections being offered for given semester and year")
+    else:
+        for i in range(0,len(sections)):
+            sections[i][2], sections[i][3] = get_course_name(cur, sections[i][0])
+            sections[i][6] = get_time_slots(cur, sections[i][6])
+            sections[i].append(get_capacity(cur, sections[i][4], sections[i][5]))
+            sections[i].append(get_enrollment(cur, sections[i][0], sections[i][1], semester, year))
+        print_course_list(sections)
 
 def main():
     conn = psycopg2.connect(dbname="team1")

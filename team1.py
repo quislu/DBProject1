@@ -383,7 +383,7 @@ def register_avalability(cur, course_id, sec_id, semester, year):
         return False
     return True
 
-def register(cur, student_id, course_id, sec_id, semester, year):
+def register(cur, student_id, course_id, sec_id, semester, year, conn):
     # Calls each of the test funtions to check if registration is possible
     if not register_prerequisites(cur, student_id, course_id):
         return
@@ -412,7 +412,7 @@ def register_handler(cur, conn):
     student_id,course_id,sec_id,semester,year = register_prompts()
 
     try:
-        register(cur, student_id, course_id, sec_id, semester, year)
+        register(cur, student_id, course_id, sec_id, semester, year, conn)
     except psycopg2.Error as e:
         print("Error")
         print(e)

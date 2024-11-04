@@ -42,6 +42,7 @@ def insert_instructor(cur):
         
     try:
         cur.execute(query, (fid,fac,dep,sal))
+        print(f"Instructor {fac} successfully added")
     except psycopg2.errors.UniqueViolation:
         print("ID already in use.")
         raise
@@ -54,16 +55,6 @@ def insert_instructor(cur):
     except psycopg2.Error as e:
         print("Other Error", e)
         raise
-    
-    query = "select * from instructor"
-    # try:
-    #     cur.execute(query)
-    #     for instructor in cur:
-    #         print(instructor[0], instructor[1], instructor[2], instructor[3])
-    # except psycopg2.Error as e:
-    #     print("Other Error")
-    #     print(e)
-    #     conn.rollback()
 
 # gets input for generating course list
 def course_list_prompts():
@@ -421,10 +412,8 @@ def register_handler(cur):
         # conn.rollback()
 
 def main():
-    print("wokring")
     # Prints the snazzy header and establishes the menu loop, accepting user input and calling query functions as needed.
     try: 
-        print("working2")
         conn = psycopg2.connect(dbname="team1")
         cur = conn.cursor()
 

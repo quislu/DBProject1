@@ -302,7 +302,7 @@ def course_list():
     return
 
 def register_prompts():
-    '''Accepts user input and assigns to variables that will be passed to insert_instructor()'''
+    # Accepts user input and assigns to variables that will be passed to insert_instructor()
     student_id = input("Enter student ID: ")
     course_id = input("Enter course ID: ")
     sec_id = input("Enter section ID: ")
@@ -311,13 +311,13 @@ def register_prompts():
     return student_id, course_id, sec_id, semester, year
 
 def register_prerequisites(cur, student_id, course_id):
-    '''Fetches prereq table from database as array'''
+    # Fetches prereq table from database as array
     cur.execute("""select prereq_id from prereq 
                     where course_id = %s;""", (course_id,))
     prerequisites = cur.fetchall()
 
-    '''Iterates over the array, testing if the student has taken each prerequisite.  If not, returns false to
-    fail the conditional in register() which will print an error message.'''
+    # Iterates over the array, testing if the student has taken each prerequisite.  If not, returns false to
+    # fail the conditional in register() and prints an error message.
     for prereq in prerequisites:
         cur.execute("""select count(*) from takes 
                         where id = %s and 
@@ -329,7 +329,7 @@ def register_prerequisites(cur, student_id, course_id):
     return True
 
 def register_schedule(cur, student_id, course_id, sec_id, semester, year):
-    '''Fetches student's '''
+    # Fetches the time slot of the desired class
     cur.execute("""select time_slot_id from section 
                     where course_id = %s and 
                     sec_id = %s and 
@@ -337,6 +337,8 @@ def register_schedule(cur, student_id, course_id, sec_id, semester, year):
                     year = %s;""", (course_id, sec_id, semester, year))
     wanted_time = cur.fetchone()
 
+    # Fetches and iterates over the student's schedule, comparing each class's time slot to the desired class's time slot.
+    # If not, returns false to fail the conditional in register() and prints an error message.
     if wanted_time:
         cur.execute("""select s.time_slot_id from takes t 
                         join section s on t.course_id = s.course_id and 
@@ -353,6 +355,8 @@ def register_schedule(cur, student_id, course_id, sec_id, semester, year):
     return True
 
 def register_avalability(cur, course_id, sec_id, semester, year):
+    # Fetches the classroom of the desired course, and if the desired course is not found, returns false to fail the conditional
+    # in register() and prints an error message.
     cur.execute("""select building, room_number from section 
                     where course_id = %s and 
                     sec_id = %s and 
@@ -360,6 +364,8 @@ def register_avalability(cur, course_id, sec_id, semester, year):
                     year = %s;""", (course_id, sec_id, semester, year))
     sec = cur.fetchone()
 
+    # Fetches the number of students already registered for the desired course and compares it to the room capacity.  If the section is full,
+    # returns false to fail the conditional in register and prints and error message.
     if sec:
         cur.execute("""select capacity from classroom 
                         where building = %s and 
@@ -382,21 +388,27 @@ def register_avalability(cur, course_id, sec_id, semester, year):
     return True
 
 def register(cur, student_id, course_id, sec_id, semester, year):
+    # Calls each of the test funtions to check if registration is possible
     if not register_prerequisites(cur, student_id, course_id):
         return
     if not register_schedule(cur, student_id, course_id, sec_id, semester, year):
         return
     if not register_avalability(cur, course_id, sec_id, semester, year):
         return
-    
+
+    # Attempts to execute the registration query, and prints error(s) if it fails
     try:
         cur.execute ("""insert into takes(ID, course_id, sec_id, semester, year) 
                      values (%s, %s, %s, %s, %s);""", (student_id, course_id, sec_id, semester, year))
         print("Registration complete!")
-    except psycopg2.Error:
-        print("Registration error")
-
+    except psycopg2.errors.ForeignKeyViolation:
+        print("No such ID, course, or section.")
+    except psycopg2.Error as e:
+        print("Error")
+        print(e)
+    
 def register_handler(cur):
+    # Calls register_prompts(), saves user input, and attempts to call register() with it.  If it fails, passes on the error.
     student_id,course_id,sec_id,semester,year = register_prompts()
 
     try:
@@ -410,6 +422,7 @@ def register_handler(cur):
 
 def main():
     print("wokring")
+    # Prints the snazzy header and establishes the menu loop, accepting user input and calling query functions as needed.
     try: 
         print("working2")
         conn = psycopg2.connect(dbname="team1")
@@ -456,7 +469,7 @@ def main():
             elif user_in == "C":
                 generate_course_list(cur)
             elif user_in == "R":
-                register_handler(cur) #TODO: incorporate psycopg2 errors
+                register_handler(cur)
             elif user_in == "Q":
                 break
             else:

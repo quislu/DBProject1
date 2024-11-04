@@ -35,25 +35,30 @@ def insert_instructor_prompts():
     return fac,fid,dep,sal
 
 # tries to insert a new instructor into the table
-def insert_instructor(cur):
+def insert_instructor(cur, conn):
     '''Takes user inputs and attempts to insert a new instructor with those values'''
     fac,fid,dep,sal = insert_instructor_prompts()
     query = "insert into instructor values (%s, %s, %s, %s);"
         
     try:
         cur.execute(query, (fid,fac,dep,sal))
-        print(f"Instructor {fac} successfully added")
+        conn.commit()
+        print(f"\nInstructor {fac} successfully added\n")
     except psycopg2.errors.UniqueViolation:
-        print("ID already in use.")
+        print("\nID already in use.\n")
+        conn.rollback()
         raise
     except psycopg2.errors.ForeignKeyViolation:
-        print("No such department.")
+        print("\nNo such department.\n")
+        conn.rollback()
         raise
     except psycopg2.errors.CheckViolation:
-        print("Salary is too low.")
+        print("\nSalary is too low.\n")
+        conn.rollback()
         raise
     except psycopg2.Error as e:
-        print("Other Error", e)
+        print("\nOther Error\n", e)
+        conn.rollback()
         raise
 
 # gets input for generating course list
@@ -398,18 +403,18 @@ def register(cur, student_id, course_id, sec_id, semester, year):
         print("Error")
         print(e)
     
-def register_handler(cur):
+def register_handler(cur, conn):
     # Calls register_prompts(), saves user input, and attempts to call register() with it.  If it fails, passes on the error.
     student_id,course_id,sec_id,semester,year = register_prompts()
 
     try:
         register(cur, student_id, course_id, sec_id, semester, year)
-        # conn.commit()
+        conn.commit()
 
     except psycopg2.Error as e:
         print("Error")
         print(e)
-        # conn.rollback()
+        conn.rollback()
 
 def main():
     # Prints the snazzy header and establishes the menu loop, accepting user input and calling query functions as needed.
@@ -444,7 +449,7 @@ def main():
                 advisor_list(cur)
             elif user_in == "I":
                 try:
-                    insert_instructor(cur)
+                    insert_instructor(cur, conn)
                     conn.commit() 
                 except Exception:
                     conn.rollback()
@@ -458,7 +463,7 @@ def main():
             elif user_in == "C":
                 generate_course_list(cur)
             elif user_in == "R":
-                register_handler(cur)
+                register_handler(cur, conn)
             elif user_in == "Q":
                 break
             else:

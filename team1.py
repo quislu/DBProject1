@@ -396,25 +396,26 @@ def register(cur, student_id, course_id, sec_id, semester, year):
     try:
         cur.execute ("""insert into takes(ID, course_id, sec_id, semester, year) 
                      values (%s, %s, %s, %s, %s);""", (student_id, course_id, sec_id, semester, year))
+        conn.commit()
         print("Registration complete!")
     except psycopg2.errors.ForeignKeyViolation:
         print("No such ID, course, or section.")
-    except psycopg2.Error as e:
-        print("Error")
-        print(e)
-    
-def register_handler(cur, conn):
-    # Calls register_prompts(), saves user input, and attempts to call register() with it.  If it fails, passes on the error.
-    student_id,course_id,sec_id,semester,year = register_prompts()
-
-    try:
-        register(cur, student_id, course_id, sec_id, semester, year)
-        conn.commit()
-
+        conn.rollback()
     except psycopg2.Error as e:
         print("Error")
         print(e)
         conn.rollback()
+
+    
+def register_handler(cur, conn):
+    # Calls register_prompts(), saves user input, and attempts to call register() with it, inside one last try block for good measure.
+    student_id,course_id,sec_id,semester,year = register_prompts()
+
+    try:
+        register(cur, student_id, course_id, sec_id, semester, year)
+    except psycopg2.Error as e:
+        print("Error")
+        print(e)
 
 def main():
     # Prints the snazzy header and establishes the menu loop, accepting user input and calling query functions as needed.
